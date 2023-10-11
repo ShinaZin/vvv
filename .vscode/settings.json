@@ -1,0 +1,15 @@
+{ 
+    "C_Cpp.default.includePath": ["${env:GDK}\\inc",
+        "${env:GDK}\\res",
+    "res",
+    "inc"
+],
+"files.associations": {
+    "*.tsx": "typescriptreact",
+    "differential-update-comments": "git-commit",
+    "new-commit": "git-commit",
+    "genesis.h": "c",
+    "string.h": "c",
+    "memory.h": "c"
+}
+}
