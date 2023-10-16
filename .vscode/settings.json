@@ -8,8 +8,6 @@
     "*.tsx": "typescriptreact",
     "differential-update-comments": "git-commit",
     "new-commit": "git-commit",
-    "genesis.h": "c",
-    "string.h": "c",
-    "memory.h": "c"
+    "*.h": "c",
 }
 }
