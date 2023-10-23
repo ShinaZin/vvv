@@ -1,13 +1,20 @@
-{ 
-    "C_Cpp.default.includePath": ["${env:GDK}\\inc",
+{
+    "C_Cpp.default.includePath": [
+        "${env:GDK}\\inc",
         "${env:GDK}\\res",
-    "res",
-    "inc"
-],
-"files.associations": {
-    "*.tsx": "typescriptreact",
-    "differential-update-comments": "git-commit",
-    "new-commit": "git-commit",
-    "*.h": "c",
-}
+        "res",
+        "inc"
+    ],
+    "clangd.fallbackFlags": [
+        "-I${env:GDK}\\res",
+        "-I${env:GDK}\\inc",
+        "-I${workspaceRoot}\\res",
+        "-I${workspaceRoot}\\inc"
+    ],
+    "files.associations": {
+        "*.h": "c",
+        "*.tsx": "typescriptreact",
+        "differential-update-comments": "git-commit",
+        "new-commit": "git-commit"
+    }
 }
