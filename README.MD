@@ -1,3 +1,3 @@
-# My Awesome Game
+# VVVVVV
 
-This is My Awesome 16 Bit Cartridge game for mega Drive
+Remake of VVVVVV "super gravitron" level
