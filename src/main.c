@@ -44,7 +44,7 @@ static void handleGravity() {
 }
 
 int main() {
-  // PAL_setPalette(PAL1, i_bg1.palette->data, DMA);
+  PAL_setPalette(PAL1, i_bg1.palette->data, DMA);
   VDP_drawImageEx(BG_B, &i_bg1,
                   TILE_ATTR_FULL(PAL1, FALSE, FALSE, FALSE, tileIdx + 1), 0, 0,
                   FALSE, TRUE);
@@ -52,16 +52,15 @@ int main() {
   VDP_setScrollingMode(HSCROLL_PLANE, VSCROLL_PLANE);
 
   SPR_init();
-  PAL_setPalette(PAL2, s_player.palette->data, DMA);
   player = SPR_addSprite(&s_player, playerX, playerY,
-                         TILE_ATTR(PAL2, FALSE, FALSE, FALSE));
+                         TILE_ATTR(PAL1, FALSE, FALSE, FALSE));
 
   while (1) {
     handleInput();
     handleGravity();
     // bg scroll
     bgOffset += 2;
-    VDP_setVerticalScroll(BG_B, bgOffset);
+    VDP_setVerticalScroll(BG_B, -bgOffset);
 
     SPR_update();
     SYS_doVBlankProcess();
