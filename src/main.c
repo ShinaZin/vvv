@@ -38,9 +38,10 @@ static void handleGravity() {
   bool isInverting = playerY > LINE_BOTTOM_Y || playerY < LINE_TOP_Y;
   if (isInverting) {
     playerGravity *= -1;
+    XGM_startPlayPCM(64, 15, SOUND_PCM_CH2);
+    SPR_setVFlip(player, playerGravity < 0);
   }
   playerY += playerGravity;
-  SPR_setVFlip(player, playerGravity < 0);
 }
 
 int main() {
@@ -54,6 +55,11 @@ int main() {
   SPR_init();
   player = SPR_addSprite(&s_player, playerX, playerY,
                          TILE_ATTR(PAL1, FALSE, FALSE, FALSE));
+
+  XGM_startPlay(music_main);
+  XGM_setLoopNumber(100);
+
+  XGM_setPCM(64, sfx_blip, sizeof(sfx_blip));
 
   while (1) {
     handleInput();
