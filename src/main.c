@@ -68,6 +68,10 @@ int main() {
     bgOffset += 2;
     VDP_setVerticalScroll(BG_B, -bgOffset);
 
+    if (!XGM_isPlaying()) {
+      XGM_startPlay(music_main);
+    }
+
     SPR_update();
     SYS_doVBlankProcess();
   }
