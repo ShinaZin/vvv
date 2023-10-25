@@ -5,6 +5,10 @@
         "res",
         "inc"
     ],
+    "clangd.arguments": [
+        "--header-insertion=never",
+        "--function-arg-placeholders=0",
+    ],
     "clangd.fallbackFlags": [
         "-I${env:GDK}\\res",
         "-I${env:GDK}\\inc",
