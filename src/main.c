@@ -9,6 +9,8 @@ u16 playerX = 120;
 u16 playerY = 100;
 s16 playerGravity = 4;
 
+u8 timeMinutes = 0;
+
 #define ANIM_IDLE 0
 #define ANIM_WALK 1
 #define ANIM_HURT 2
@@ -16,6 +18,8 @@ s16 playerGravity = 4;
 #define LINE_PADDING 45
 #define LINE_TOP_Y 0 + LINE_PADDING
 #define LINE_BOTTOM_Y 200 - LINE_PADDING
+
+#define TIMER_SCORE 1
 
 static void handleInput() {
   u16 key = JOY_readJoypad(JOY_1);
@@ -44,6 +48,23 @@ static void handleGravity() {
   playerY += playerGravity;
 }
 
+static char *getCurrentTimeScore() {
+  static char stringified[20];
+
+  u32 ticks = getTimer(TIMER_SCORE, FALSE);
+  u16 msecs = ticks / (SUBTICKPERSECOND / 1000);
+  u8 seconds = ticks / SUBTICKPERSECOND;
+  u8 minutes = seconds / 60;
+  if (minutes == 1) {
+    timeMinutes += 1;
+    getTimer(TIMER_SCORE, TRUE);
+  }
+
+  sprintf(stringified, "Time: %02d:%02d:%03d", timeMinutes, seconds % 60,
+          msecs % 1000);
+  return stringified;
+}
+
 int main() {
   PAL_setPalette(PAL1, i_bg1.palette->data, DMA);
   VDP_drawImageEx(BG_B, &i_bg1,
@@ -57,7 +78,7 @@ int main() {
                          TILE_ATTR(PAL1, FALSE, FALSE, FALSE));
 
   XGM_startPlay(music_main);
-  XGM_setLoopNumber(100);
+  startTimer(TIMER_SCORE);
 
   // XGM_setPCM(64, sfx_blip, sizeof(sfx_blip));
 
@@ -67,6 +88,7 @@ int main() {
     // bg scroll
     bgOffset += 2;
     VDP_setVerticalScroll(BG_B, -bgOffset);
+    VDP_drawTextBG(BG_A, getCurrentTimeScore(), 1, 2);
 
     if (!XGM_isPlaying()) {
       XGM_startPlay(music_main);
