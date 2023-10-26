@@ -5,11 +5,28 @@ u16 tileIdx = TILE_USER_INDEX;
 float bgOffset = 0;
 
 Sprite *player;
-u16 playerX = 120;
-u16 playerY = 100;
+s16 playerX = 120;
+s16 playerY = 100;
+u8 playerSpeed = 3;
 s16 playerGravity = 4;
 
 u8 timeMinutes = 0;
+
+#define RECTS_COUNT 4
+
+typedef struct {
+  s16 x;
+  s16 y;
+  s16 speed;
+  Sprite *sprite;
+} Rect;
+
+Rect rects[RECTS_COUNT];
+
+#define foreach(item, array)                                            \
+  for (int keep = 1, count = 0, size = sizeof(array) / sizeof *(array); \
+       keep && count != size; keep = !keep, count++)                    \
+    for (item = (array) + count; keep; keep = !keep)
 
 #define ANIM_IDLE 0
 #define ANIM_WALK 1
@@ -21,18 +38,32 @@ u8 timeMinutes = 0;
 
 #define TIMER_SCORE 1
 
+s16 getRandom(s16 mini, s16 maxi) {
+  if (mini > maxi)
+    SWAP_s16(mini, maxi);
+  return mini + (random() % (maxi - mini + 1));
+}
+
+s16 getRandomSpeed(s16 min, s16 max) {
+  s8 sign = getRandom(0, 10) > 5 ? 1 : -1;
+  return getRandom(min, max) * sign;
+}
+
 static void handleInput() {
   u16 key = JOY_readJoypad(JOY_1);
-  u8 speed = 2;
   bool isWalking = key & BUTTON_LEFT || key & BUTTON_RIGHT;
 
   if (key & BUTTON_LEFT) {
-    playerX -= speed;
+    playerX -= playerSpeed;
     SPR_setHFlip(player, TRUE);
   } else if (key & BUTTON_RIGHT) {
-    playerX += speed;
+    playerX += playerSpeed;
     SPR_setHFlip(player, FALSE);
   }
+  if (playerX > screenWidth)
+    playerX = 0;
+  else if (playerX < 0 - s_player.w)
+    playerX = screenWidth;
   // animations
   SPR_setAnim(player, isWalking ? ANIM_WALK : ANIM_IDLE);
   SPR_setPosition(player, playerX, playerY);
@@ -46,6 +77,24 @@ static void handleGravity() {
     SPR_setVFlip(player, playerGravity < 0);
   }
   playerY += playerGravity;
+}
+
+static void handleRects() {
+  foreach (Rect *rect, rects) {
+    rect->x += rect->speed;
+    bool isRightFromScreen = rect->x > screenWidth && rect->speed > 0;
+    bool isLeftFromScreen = rect->x < 0 - s_rect.w && rect->speed < 0;
+    if (isRightFromScreen || isLeftFromScreen) {
+      rect->y = getRandom(LINE_TOP_Y, LINE_BOTTOM_Y);
+      if (isRightFromScreen) {
+        rect->x += getRandom(20, 100);
+      } else if (isLeftFromScreen) {
+        rect->x += getRandom(-100, -20);
+      }
+      rect->speed *= -1;
+    }
+    SPR_setPosition(rect->sprite, rect->x, rect->y);
+  }
 }
 
 static char *getCurrentTimeScore() {
@@ -76,6 +125,13 @@ int main() {
   SPR_init();
   player = SPR_addSprite(&s_player, playerX, playerY,
                          TILE_ATTR(PAL1, FALSE, FALSE, FALSE));
+  foreach (Rect *rect, rects) {
+    rect->x = 0;
+    rect->y = getRandom(LINE_TOP_Y, LINE_BOTTOM_Y);
+    rect->speed = 3; // getRandomSpeed(2, 3);
+    rect->sprite = SPR_addSprite(&s_rect, rect->x, rect->y,
+                                 TILE_ATTR(PAL1, FALSE, FALSE, FALSE));
+  }
 
   XGM_startPlay(music_main);
   startTimer(TIMER_SCORE);
@@ -85,6 +141,7 @@ int main() {
   while (1) {
     handleInput();
     handleGravity();
+    handleRects();
     // bg scroll
     bgOffset += 2;
     VDP_setVerticalScroll(BG_B, -bgOffset);
