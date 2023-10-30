@@ -51,6 +51,19 @@ s16 getRandomSpeed(s16 min, s16 max) {
   return getRandom(min, max) * sign;
 }
 
+bool isColliding(GameObject *a, GameObject *b, s8 padding) {
+  const s16 aX = a->x + padding;
+  const s16 aY = a->y + padding;
+  const s16 aW = a->sprite->definition->w + aX - padding;
+  const s16 aH = a->sprite->definition->h + aY - padding;
+
+  const s16 bX = b->x + padding;
+  const s16 bY = b->y + padding;
+  const s16 bW = b->sprite->definition->w + bX - padding;
+  const s16 bH = b->sprite->definition->h + bY - padding;
+  return (aX < bW && aW > bX && aY < bH && aH > bY);
+}
+
 static void handleInput() {
   u16 key = JOY_readJoypad(JOY_1);
   bool isWalking = key & BUTTON_LEFT || key & BUTTON_RIGHT;
@@ -99,6 +112,19 @@ static void handleRects() {
   }
 }
 
+static void handleCollisions() {
+  foreach (GameObject *rect, rects) {
+    if (isColliding(rect, &player, 7)) {
+      XGM_stopPlay();
+      SPR_setAnim(player.sprite, ANIM_HURT);
+      SPR_update();
+      VDP_drawTextBG(BG_A, "GAME OVER", 14, 26);
+      waitMs(1000);
+      SYS_reset();
+    }
+  }
+}
+
 static char *getCurrentTimeScore() {
   static char stringified[20];
 
@@ -125,6 +151,9 @@ int main() {
   VDP_setScrollingMode(HSCROLL_PLANE, VSCROLL_PLANE);
 
   SPR_init();
+  player.x = 120;
+  player.y = 100;
+  player.gravity = 4;
   player.sprite = SPR_addSprite(&s_player, player.x, player.y,
                          TILE_ATTR(PAL1, FALSE, FALSE, FALSE));
   foreach (GameObject *rect, rects) {
@@ -144,6 +173,7 @@ int main() {
     handleInput();
     handleGravity();
     handleRects();
+    handleCollisions();
     // bg scroll
     bgOffset += 2;
     VDP_setVerticalScroll(BG_B, -bgOffset);
