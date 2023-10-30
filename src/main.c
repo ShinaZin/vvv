@@ -4,24 +4,26 @@
 u16 tileIdx = TILE_USER_INDEX;
 float bgOffset = 0;
 
-Sprite *player;
-s16 playerX = 120;
-s16 playerY = 100;
-u8 playerSpeed = 3;
-s16 playerGravity = 4;
+typedef struct {
+  s16 x;
+  s16 y;
+  s16 speed;
+  s16 gravity;
+  Sprite *sprite;
+} GameObject;
+
+GameObject player = {
+  .x = 120,
+  .y = 100,
+  .speed = 3,
+  .gravity = 4
+};
 
 u8 timeMinutes = 0;
 
 #define RECTS_COUNT 4
 
-typedef struct {
-  s16 x;
-  s16 y;
-  s16 speed;
-  Sprite *sprite;
-} Rect;
-
-Rect rects[RECTS_COUNT];
+GameObject rects[RECTS_COUNT];
 
 #define foreach(item, array)                                            \
   for (int keep = 1, count = 0, size = sizeof(array) / sizeof *(array); \
@@ -54,33 +56,33 @@ static void handleInput() {
   bool isWalking = key & BUTTON_LEFT || key & BUTTON_RIGHT;
 
   if (key & BUTTON_LEFT) {
-    playerX -= playerSpeed;
-    SPR_setHFlip(player, TRUE);
+    player.x -= player.speed;
+    SPR_setHFlip(player.sprite, TRUE);
   } else if (key & BUTTON_RIGHT) {
-    playerX += playerSpeed;
-    SPR_setHFlip(player, FALSE);
+    player.x += player.speed;
+    SPR_setHFlip(player.sprite, FALSE);
   }
-  if (playerX > screenWidth)
-    playerX = 0;
-  else if (playerX < 0 - s_player.w)
-    playerX = screenWidth;
+  if (player.x > screenWidth)
+    player.x = 0;
+  else if (player.x < 0 - s_player.w)
+    player.x = screenWidth;
   // animations
-  SPR_setAnim(player, isWalking ? ANIM_WALK : ANIM_IDLE);
-  SPR_setPosition(player, playerX, playerY);
+  SPR_setAnim(player.sprite, isWalking ? ANIM_WALK : ANIM_IDLE);
+  SPR_setPosition(player.sprite, player.x, player.y);
 }
 
 static void handleGravity() {
-  bool isInverting = playerY > LINE_BOTTOM_Y || playerY < LINE_TOP_Y;
+  bool isInverting = player.y > LINE_BOTTOM_Y || player.y < LINE_TOP_Y;
   if (isInverting) {
-    playerGravity *= -1;
+    player.gravity *= -1;
     // XGM_startPlayPCM(64, 15, SOUND_PCM_CH2);
-    SPR_setVFlip(player, playerGravity < 0);
+    SPR_setVFlip(player.sprite, player.gravity < 0);
   }
-  playerY += playerGravity;
+  player.y += player.gravity;
 }
 
 static void handleRects() {
-  foreach (Rect *rect, rects) {
+  foreach (GameObject *rect, rects) {
     rect->x += rect->speed;
     bool isRightFromScreen = rect->x > screenWidth && rect->speed > 0;
     bool isLeftFromScreen = rect->x < 0 - s_rect.w && rect->speed < 0;
@@ -123,9 +125,9 @@ int main() {
   VDP_setScrollingMode(HSCROLL_PLANE, VSCROLL_PLANE);
 
   SPR_init();
-  player = SPR_addSprite(&s_player, playerX, playerY,
+  player.sprite = SPR_addSprite(&s_player, player.x, player.y,
                          TILE_ATTR(PAL1, FALSE, FALSE, FALSE));
-  foreach (Rect *rect, rects) {
+  foreach (GameObject *rect, rects) {
     rect->x = 0;
     rect->y = getRandom(LINE_TOP_Y, LINE_BOTTOM_Y);
     rect->speed = 3; // getRandomSpeed(2, 3);
