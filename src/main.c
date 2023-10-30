@@ -21,7 +21,7 @@ GameObject player = {
 
 u8 timeMinutes = 0;
 
-#define RECTS_COUNT 4
+#define RECTS_COUNT 6
 
 GameObject rects[RECTS_COUNT];
 
@@ -102,9 +102,9 @@ static void handleRects() {
     if (isRightFromScreen || isLeftFromScreen) {
       rect->y = getRandom(LINE_TOP_Y, LINE_BOTTOM_Y);
       if (isRightFromScreen) {
-        rect->x += getRandom(20, 100);
+        rect->x += getRandom(20, 150);
       } else if (isLeftFromScreen) {
-        rect->x += getRandom(-100, -20);
+        rect->x += getRandom(-150, -20);
       }
       rect->speed *= -1;
     }
@@ -157,7 +157,7 @@ int main() {
   player.sprite = SPR_addSprite(&s_player, player.x, player.y,
                          TILE_ATTR(PAL1, FALSE, FALSE, FALSE));
   foreach (GameObject *rect, rects) {
-    rect->x = 0;
+    rect->x = getRandom(-240, 0);
     rect->y = getRandom(LINE_TOP_Y, LINE_BOTTOM_Y);
     rect->speed = 3; // getRandomSpeed(2, 3);
     rect->sprite = SPR_addSprite(&s_rect, rect->x, rect->y,
