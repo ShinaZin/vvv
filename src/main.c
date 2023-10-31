@@ -1,16 +1,10 @@
 #include <genesis.h>
 #include <resources.h>
 
-u16 tileIdx = TILE_USER_INDEX;
-float bgOffset = 0;
+#include "types.h"
+#include "helpers.h"
 
-typedef struct {
-  s16 x;
-  s16 y;
-  s16 speed;
-  s16 gravity;
-  Sprite *sprite;
-} GameObject;
+u16 tileIdx = TILE_USER_INDEX;
 
 GameObject player = {
   .x = 120,
@@ -25,11 +19,6 @@ u8 timeMinutes = 0;
 
 GameObject rects[RECTS_COUNT];
 
-#define foreach(item, array)                                            \
-  for (int keep = 1, count = 0, size = sizeof(array) / sizeof *(array); \
-       keep && count != size; keep = !keep, count++)                    \
-    for (item = (array) + count; keep; keep = !keep)
-
 #define ANIM_IDLE 0
 #define ANIM_WALK 1
 #define ANIM_HURT 2
@@ -39,30 +28,6 @@ GameObject rects[RECTS_COUNT];
 #define LINE_BOTTOM_Y 200 - LINE_PADDING
 
 #define TIMER_SCORE 1
-
-s16 getRandom(s16 mini, s16 maxi) {
-  if (mini > maxi)
-    SWAP_s16(mini, maxi);
-  return mini + (random() % (maxi - mini + 1));
-}
-
-s16 getRandomSpeed(s16 min, s16 max) {
-  s8 sign = getRandom(0, 10) > 5 ? 1 : -1;
-  return getRandom(min, max) * sign;
-}
-
-bool isColliding(GameObject *a, GameObject *b, s8 padding) {
-  const s16 aX = a->x + padding;
-  const s16 aY = a->y + padding;
-  const s16 aW = a->sprite->definition->w + aX - padding;
-  const s16 aH = a->sprite->definition->h + aY - padding;
-
-  const s16 bX = b->x + padding;
-  const s16 bY = b->y + padding;
-  const s16 bW = b->sprite->definition->w + bX - padding;
-  const s16 bH = b->sprite->definition->h + bY - padding;
-  return (aX < bW && aW > bX && aY < bH && aH > bY);
-}
 
 static void handleInput() {
   u16 key = JOY_readJoypad(JOY_1);
@@ -143,6 +108,8 @@ static char *getCurrentTimeScore() {
 }
 
 int main() {
+  float bgOffset = 0;
+  
   PAL_setPalette(PAL1, i_bg1.palette->data, DMA);
   VDP_drawImageEx(BG_B, &i_bg1,
                   TILE_ATTR_FULL(PAL1, FALSE, FALSE, FALSE, tileIdx + 1), 0, 0,
