@@ -29,6 +29,13 @@ GameObject rects[RECTS_COUNT];
 
 #define TIMER_SCORE 1
 
+typedef u8 Scene;
+#define SCENE_MAIN 0
+#define SCENE_PAUSE 1
+#define SCENE_GAME_OVER 2
+
+Scene scene = SCENE_MAIN;
+
 static void handleInput() {
   u16 key = JOY_readJoypad(JOY_1);
   bool isWalking = key & BUTTON_LEFT || key & BUTTON_RIGHT;
@@ -80,12 +87,7 @@ static void handleRects() {
 static void handleCollisions() {
   foreach (GameObject *rect, rects) {
     if (isColliding(rect, &player, 7)) {
-      XGM_stopPlay();
-      SPR_setAnim(player.sprite, ANIM_HURT);
-      SPR_update();
-      VDP_drawTextBG(BG_A, "GAME OVER", 14, 26);
-      waitMs(1000);
-      SYS_reset();
+      scene = SCENE_GAME_OVER;
     }
   }
 }
@@ -107,7 +109,7 @@ static char *getCurrentTimeScore() {
   return stringified;
 }
 
-int main() {
+void sceneMain() {
   float bgOffset = 0;
   
   PAL_setPalette(PAL1, i_bg1.palette->data, DMA);
@@ -136,7 +138,7 @@ int main() {
 
   // XGM_setPCM(64, sfx_blip, sizeof(sfx_blip));
 
-  while (1) {
+  while (scene == SCENE_MAIN) {
     handleInput();
     handleGravity();
     handleRects();
@@ -152,6 +154,23 @@ int main() {
 
     SPR_update();
     SYS_doVBlankProcess();
+  }
+}
+
+void sceneGameOver() {
+  XGM_stopPlay();
+  SPR_setAnim(player.sprite, ANIM_HURT);
+  SPR_update();
+  VDP_drawTextBG(BG_A, "GAME OVER", 14, 26);
+  waitMs(1000);
+  VDP_clearPlane(BG_A, TRUE);
+  scene = SCENE_MAIN;
+}
+
+int main() {
+  while (1) {
+    sceneMain();
+    sceneGameOver();
   }
   return (0);
 }
