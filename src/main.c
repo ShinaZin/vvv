@@ -13,7 +13,8 @@ GameObject player = {
   .gravity = 4
 };
 
-u8 timeMinutes = 0;
+Time currentTime = {.m = 0, .s = 0, .ms = 0};
+Time bestTime;
 
 #define RECTS_COUNT 6
 
@@ -35,6 +36,17 @@ typedef u8 Scene;
 #define SCENE_GAME_OVER 2
 
 Scene scene = SCENE_MAIN;
+
+Time getCurrentTime() {
+  u32 ticks = getTimer(TIMER_SCORE, FALSE);
+  u16 msecs = ticks / (SUBTICKPERSECOND / 1000);
+  u8 seconds = ticks / SUBTICKPERSECOND;
+  u8 minutes = seconds / 60;
+  if (minutes == 1) {
+    getTimer(TIMER_SCORE, TRUE);
+  }
+  return (Time){currentTime.m + minutes, seconds % 60, msecs % 1000};
+}
 
 static void handleInput() {
   u16 key = JOY_readJoypad(JOY_1);
@@ -84,6 +96,13 @@ static void handleRects() {
   }
 }
 
+static void handleTimeScore() {
+  currentTime = getCurrentTime();
+  Time* best = getTimeAsMs(&currentTime) > getTimeAsMs(&bestTime) ? &currentTime : &bestTime;
+  VDP_drawTextBG(BG_A, getTimeAsString(&currentTime, "Time: "), 1, 2);
+  VDP_drawTextBG(BG_A, getTimeAsString(best, "Best: "), 24, 2);
+}
+
 static void handleCollisions() {
   foreach (GameObject *rect, rects) {
     if (isColliding(rect, &player, 7)) {
@@ -92,22 +111,6 @@ static void handleCollisions() {
   }
 }
 
-static char *getCurrentTimeScore() {
-  static char stringified[20];
-
-  u32 ticks = getTimer(TIMER_SCORE, FALSE);
-  u16 msecs = ticks / (SUBTICKPERSECOND / 1000);
-  u8 seconds = ticks / SUBTICKPERSECOND;
-  u8 minutes = seconds / 60;
-  if (minutes == 1) {
-    timeMinutes += 1;
-    getTimer(TIMER_SCORE, TRUE);
-  }
-
-  sprintf(stringified, "Time: %02d:%02d:%03d", timeMinutes, seconds % 60,
-          msecs % 1000);
-  return stringified;
-}
 
 void sceneMain() {
   float bgOffset = 0;
@@ -143,11 +146,11 @@ void sceneMain() {
     handleGravity();
     handleRects();
     handleCollisions();
+    handleTimeScore();
     // bg scroll
     bgOffset += 2;
     VDP_setVerticalScroll(BG_B, -bgOffset);
-    VDP_drawTextBG(BG_A, getCurrentTimeScore(), 1, 2);
-
+    
     if (!XGM_isPlaying()) {
       XGM_startPlay(music_main);
     }
@@ -158,13 +161,18 @@ void sceneMain() {
 }
 
 void sceneGameOver() {
-  XGM_stopPlay();
-  SPR_setAnim(player.sprite, ANIM_HURT);
-  SPR_update();
-  VDP_drawTextBG(BG_A, "GAME OVER", 14, 26);
-  waitMs(1000);
-  VDP_clearPlane(BG_A, TRUE);
-  scene = SCENE_MAIN;
+  if (scene == SCENE_GAME_OVER) {
+    XGM_stopPlay();
+    SPR_setAnim(player.sprite, ANIM_HURT);
+    SPR_update();
+    if (getTimeAsMs(&currentTime) > getTimeAsMs(&bestTime)) {
+      bestTime = currentTime;
+    }
+    VDP_drawTextBG(BG_A, "GAME OVER", 14, 26);
+    waitMs(1000);
+    VDP_clearPlane(BG_A, TRUE);
+    scene = SCENE_MAIN;
+  }
 }
 
 int main() {
