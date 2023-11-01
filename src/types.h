@@ -11,4 +11,10 @@ typedef struct {
   Sprite *sprite;
 } GameObject;
 
+typedef struct {
+  u8 m;
+  u8 s;
+  u8 ms;
+} Time;
+
 #endif  // TYPES_H

@@ -10,6 +10,16 @@ s16 getRandomSpeed(s16 min, s16 max) {
   return getRandom(min, max) * sign;
 }
 
+u16 getTimeAsMs(const Time* time) {
+  return time->ms + time->s * 1000 + time->m * 60000;
+}
+
+char *getTimeAsString(const Time* time, const char* prefix) {
+  static char stringified[20];
+  sprintf(stringified, "%s%02d:%02d:%03d", prefix, time->m, time->s, time->ms);
+  return stringified;
+}
+
 bool isColliding(GameObject *a, GameObject *b, s8 padding) {
   const s16 aX = a->x + padding;
   const s16 aY = a->y + padding;

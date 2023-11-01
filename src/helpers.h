@@ -14,6 +14,11 @@ s16 getRandom(s16 mini, s16 maxi);
 
 s16 getRandomSpeed(s16 min, s16 max);
 
+/** Convert `time` to miliseconds */
+u16 getTimeAsMs(const Time *time);
+/** Convert `time` to string and add some `prefix` */
+char *getTimeAsString(const Time *time, const char *prefix);
+
 bool isColliding(GameObject *a, GameObject *b, s8 padding);
 
 #endif  // HELPERS_H
