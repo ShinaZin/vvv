@@ -121,6 +121,11 @@ void sceneMain() {
                   FALSE, TRUE);
 
   VDP_setScrollingMode(HSCROLL_PLANE, VSCROLL_PLANE);
+  int baseline = TILE_ATTR_FULL(PAL1, FALSE, FALSE, FALSE, tileIdx + i_bg1.tileset->numTile + 1);
+  for (u8 tileX = 0; tileX < 40; tileX++) {
+    VDP_drawImageEx(BG_A, &i_line_h, baseline, tileX, 5, FALSE, TRUE);
+    VDP_drawImageEx(BG_A, &i_line_h, baseline, tileX, 22, FALSE, TRUE);
+  }
 
   SPR_init();
   player.x = 120;
@@ -147,9 +152,10 @@ void sceneMain() {
     handleRects();
     handleCollisions();
     handleTimeScore();
-    // bg scroll
+    // handleBackground()
     bgOffset += 2;
     VDP_setVerticalScroll(BG_B, -bgOffset);
+    // TODO drawLines on BG_A
     
     if (!XGM_isPlaying()) {
       XGM_startPlay(music_main);
